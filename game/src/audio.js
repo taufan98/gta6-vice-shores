@@ -126,6 +126,14 @@ export function createAudio() {
     init() {
       if (ensure() && ctx.state === 'suspended') ctx.resume();
     },
+    /** Same as init: unlock the context from a user gesture. */
+    unlock() {
+      if (ensure() && ctx.state === 'suspended') ctx.resume();
+    },
+    /** Make sure the context (and the bassline) exists; a no-op once running. */
+    startMusic() {
+      ensure();
+    },
     setMuted(value) {
       muted = value;
       if (master) master.gain.value = value ? 0 : 0.5;

@@ -108,8 +108,10 @@ function runGame() {
     }
     if (flags & ACTION_WEAPON_FISTS) state.player.weapon = 'fists';
     if (flags & ACTION_WEAPON_PISTOL) state.player.weapon = 'pistol';
-    const clicked = input.takeClick();
     if (screen === SCREEN_TITLE) {
+      // Clicks are only taken on menu screens: in play, the click belongs to the
+      // pistol (updatePlayer takes it), so taking it here would eat every shot.
+      const clicked = input.takeClick();
       if ((flags & ACTION_CONFIRM) || clicked) {
         audio.unlock();
         audio.startMusic();
@@ -132,7 +134,7 @@ function runGame() {
       return flags;
     }
     // Busted / wasted / ending: confirm (or click) goes back to play.
-    if ((flags & ACTION_CONFIRM) || clicked) {
+    if ((flags & ACTION_CONFIRM) || input.takeClick()) {
       state.busted = false;
       state.wasted = false;
       screen = SCREEN_PLAY;
@@ -142,6 +144,7 @@ function runGame() {
   }
 
   function step(flags) {
+    // updateMission returns 'done' when a job completes and 'won' when the last one does.
     const result = stepWorld(state, input, audio, STEP, flags);
     if (state.busted) {
       state.busted = false;
@@ -155,7 +158,7 @@ function runGame() {
       announce(`Wasted. The bill was $${state.lastFine || 0}.`);
       return;
     }
-    if (result && result.type === 'complete') {
+    if (result === 'done' || result === 'won') {
       saveGame(state);
       if (state.gameWon) {
         screen = SCREEN_ENDING;
